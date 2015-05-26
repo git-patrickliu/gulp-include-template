@@ -1,0 +1,15 @@
+{
+  "name": "gulp-preinclude-template",
+  "version": "0.0.1",
+  "devDependencies": {
+    "art-template": "3.0.3",
+    "ued-art-template": "^0.0.1",
+    "through2": "^0.6.5"
+  },
+  "main": "index.js",
+  "author": {
+    "name": "liupeng",
+    "email": "phil.liu.cn@gmail.com"
+  },
+  "repository": {}
+}

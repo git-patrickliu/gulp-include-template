@@ -1,0 +1,7 @@
+{
+  "name": "gulp-include-template-test",
+  "version": "0.0.1",
+  "devDependencies": {
+    "gulp": "^3.8.11"
+  }
+}
