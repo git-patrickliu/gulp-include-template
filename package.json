@@ -1,7 +1,7 @@
 {
   "name": "gulp-include-template",
-  "version": "0.0.1",
-  "devDependencies": {
+  "version": "0.0.2",
+  "dependencies": {
     "art-template": "3.0.3",
     "ued-art-template": "^0.0.1",
     "through2": "^0.6.5"
