@@ -1,6 +1,6 @@
 var fs = require('fs'),
     through = require('through2'),
-    artTemplate = require('ued-art-template').getSimple();
+    artTemplate = require('ued-art-template').getNative();
 
 
 // 给artTemplate新增一个预处理include的方法
