@@ -43,6 +43,7 @@ gulp.task("includeTemplate", function() {
 });
 ```
 After running the includeTemplate task:
+
 compiled/hello.html
 
 ```html
@@ -65,4 +66,6 @@ compiled/hello.html
 </body>
 </html>
 ```
+
+The compiled hello.html can be directly used by the artTemplate without loading the outer html in running time.
 
