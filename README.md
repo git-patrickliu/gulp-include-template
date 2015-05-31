@@ -32,7 +32,7 @@ var gulp = require("gulp"),
     gulpIncludeTemplate = require("gulp-include-template");
 
 // you can set the basic attributes of the gulpIncludeTemplate like the artTemplate
-// artTemplate.config('base', 'path-to-html'); artTemplate.config('ext', 'your-default-file-extension');
+// gulpIncludeTemplate.config('base', 'path-to-html'); gulpIncludeTemplate.config('ext', 'your-default-file-extension');
 
 gulp.task("includeTemplate", function() {
 
