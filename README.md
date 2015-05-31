@@ -67,5 +67,5 @@ compiled/hello.html
 </html>
 ```
 
-The compiled hello.html can be directly used by the artTemplate without loading the outer html in running time.
+The compiled hello.html can be directly used by the [artTemplate](https://github.com/aui/artTemplate) without loading the outer html in running time.
 
