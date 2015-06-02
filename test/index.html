@@ -6,7 +6,12 @@
 </head>
 <body>
 <% var data = { "hello": "world" }; %>
+<!-- relative path -->
 <% include('header.html', data); %>
 <% include('footer.html', data); %>
+
+<!-- absolute path -->
+<% include('/header.html', data); %>
+<% include('/footer.html', data); %>
 </body>
 </html>

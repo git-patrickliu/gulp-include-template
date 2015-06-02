@@ -1,7 +1,12 @@
 var fs = require('fs'),
+    path = require('path'),
     through = require('through2'),
     artTemplate = require('ued-art-template').getNative();
 
+
+var defaults = {
+    base: null
+};
 
 // 给artTemplate新增一个预处理include的方法
 // 并且做成一个gulp stream
@@ -19,13 +24,33 @@ var preInclude = function(file, encoding, callback) {
         return callback(new Error('Streaming not supported'));
     }
 
-    var readFile = function(filePath) {
-        return fs.readFileSync(filePath, 'utf-8');
+    var readFile = function (includeFilePath, basePath) {
+
+        if (path.isAbsolute(includeFilePath)) {
+
+            // 如果includeFilePath是以 '/'开头的，则认为是相对于base进行定位的
+            if (includeFilePath[0] === '/') {
+                includeFilePath = (defaults.base ? defaults.base : '') + includeFilePath;
+            }
+
+            return {
+                content: fs.readFileSync(includeFilePath, 'utf-8'),
+                basePath: path.dirname(includeFilePath)
+            }
+        } else {
+            // 否则resolve一下，再返回
+            // todo
+            return {
+                content: fs.readFileSync(path.resolve(basePath, includeFilePath), 'utf-8'),
+                basePath: path.dirname(path.resolve(basePath, includeFilePath))
+            }
+        }
     };
 
-    var html = String(file.contents);
+    var html = String(file.contents),
+        basePath = path.dirname(file.path);
 
-    function include(html) {
+    function include(html, basePath) {
         var self = arguments.callee;
 
         // 对html当中的文件include进行正则匹配
@@ -44,7 +69,7 @@ var preInclude = function(file, encoding, callback) {
             if(resultData) {
 
                 // include('hello.html', data) -> include('hello.html') -> evalFun
-                evalFun = $1.replace(getDataREGEXP, function($0, $1) { return $1 + ')'});
+                evalFun = $1.replace(getDataREGEXP, function($0, $1) { return $1 + ',"' + basePath + '")'});
 
                 // 将 include('hello.html', data), 的data -> dataParam
                 dataParam = resultData[2];
@@ -56,20 +81,20 @@ var preInclude = function(file, encoding, callback) {
             var contentCode = (new Function('include', 'return ' + evalFun ))(readFile);
 
             // 从hello.html当中获取其中的变量
-            var variables = getVariables(contentCode);
+            var variables = getVariables(contentCode.content);
 
             // 将变量加到headerCode后面
             headerCode += (variables.length > 0 ? (' <% var ' + variables.join(',') + '; %> \n') : '');
 
             // 递归获取
-            contentCode = self(contentCode);
+            contentCode = self(contentCode.content, contentCode.basePath);
 
             var footerCode = ' \n <% })(' + dataParam + '); %> \n <% ';
             return headerCode + contentCode + footerCode;
         });
     };
 
-    file.contents = new Buffer(include(html));
+    file.contents = new Buffer(include(html, basePath));
     this.push(file);
     callback();
 
@@ -186,6 +211,11 @@ function logic (code, uniq) {
     })
 
     return headerCode;
-}
+};
 
-module.exports = through.obj(preInclude);
+exports = module.exports = through.obj(preInclude);
+
+// set some configs
+exports.config = function(key, value) {
+    defaults[key] = value;
+}

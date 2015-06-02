@@ -31,8 +31,6 @@ html/footer.html
 var gulp = require("gulp"),
     gulpIncludeTemplate = require("gulp-include-template");
 
-// you can set the basic attributes of the gulpIncludeTemplate like the artTemplate
-// gulpIncludeTemplate.config('base', 'path-to-html'); gulpIncludeTemplate.config('ext', 'your-default-file-extension');
 
 gulp.task("includeTemplate", function() {
 
@@ -63,6 +61,36 @@ compiled/hello.html
 <footer><%= hello %></footer>
  <% })( data); %>
  <%  %>
+</body>
+</html>
+```
+## Set the base
+
+If we want to refer to the js/css with the absolute url starts with '/', you should set the base attribute
+of gulp-include-template.
+
+```javascript
+var gulp = require("gulp"),
+    gulpIncludeTemplate = require("gulp-include-template");
+
+// if we set the base of gulp-include-template, we can access them the absolute url starts with '/'
+gulpIncludeTemplate.config('base', 'path/to/html');
+gulp.task("includeTemplate", function() {
+
+    return gulp.src("../html/hello.html")
+        // options is optional
+        .pipe(gulpIncludeTemplate)
+        .pipe(gulp.dest("./compiled"));
+});
+```
+Html is like this.
+
+```html
+<!doctype html>
+<body>
+<% var data = { "hello": "world" }; %>
+<% include('/dirUnderPathToHtml/header.html', data); %>
+<% include('/dirUnderPathToHtml/footer.html', data); %>
 </body>
 </html>
 ```
