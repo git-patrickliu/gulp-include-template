@@ -7,31 +7,31 @@
 <body>
 <% var data = { "hello": "world" }; %>
 <!-- relative path -->
-<%  %> 
+ 
  <% (function($$data) {%>
  <% var hello=$$data.hello; %> 
 <header><%= hello %></header> 
  <% })( data); %> 
- <%  %>
-<%  %> 
+ 
+ 
  <% (function($$data) {%>
  <% var hello=$$data.hello; %> 
 <footer><%= hello %></footer> 
  <% })( data); %> 
- <%  %>
+ 
 
 <!-- absolute path -->
-<%  %> 
+ 
  <% (function($$data) {%>
  <% var hello=$$data.hello; %> 
 <header><%= hello %></header> 
  <% })( data); %> 
- <%  %>
-<%  %> 
+ 
+ 
  <% (function($$data) {%>
  <% var hello=$$data.hello; %> 
 <footer><%= hello %></footer> 
  <% })( data); %> 
- <%  %>
+ 
 </body>
 </html>

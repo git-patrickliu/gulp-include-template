@@ -94,7 +94,8 @@ var preInclude = function(file, encoding, callback) {
         });
     };
 
-    file.contents = new Buffer(include(html, basePath));
+    // 去掉多余的 <% %> (中间除了空格没有其他的业务代码)
+    file.contents = new Buffer(include(html, basePath).replace(/<%\s*?%>/g, ''));
     this.push(file);
     callback();
 
