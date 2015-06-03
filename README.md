@@ -49,18 +49,14 @@ compiled/hello.html
 <html>
 <body>
 <% var data = { "hello": "world" }; %>
-<%  %>
  <% (function($$data) {%>
  <% var hello=$$data.hello; %>
 <header><%= hello %></header>
  <% })( data); %>
- <%  %>
-<%  %>
  <% (function($$data) {%>
  <% var hello=$$data.hello; %>
 <footer><%= hello %></footer>
  <% })( data); %>
- <%  %>
 </body>
 </html>
 ```
