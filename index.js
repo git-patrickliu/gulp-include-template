@@ -95,7 +95,7 @@ var preInclude = function(file, encoding, callback) {
 
             // 如果contentCode中无就直接返回contentCode
             if(!/<%[\s\S]*?%>/.test(contentCode)) {
-                return contentCode;
+                return ' %> ' + contentCode + ' <% ';
             }
 
             var footerCode = ' \n <% })(' + dataParam + '); %> \n <% ';
@@ -103,7 +103,7 @@ var preInclude = function(file, encoding, callback) {
         });
     };
 
-    file.contents = new Buffer(include(html, basePath));
+    file.contents = new Buffer(include(html, basePath).replace(/<%\s*?%>/g, ''));
     this.push(file);
     callback();
 
