@@ -24,27 +24,30 @@ var preInclude = function(file, encoding, callback) {
         return callback(new Error('Streaming not supported'));
     }
 
-    var readFile = function (includeFilePath, basePath) {
+    var readFile = function (includeFilePath) {
 
-        if (path.isAbsolute(includeFilePath)) {
+        return function(basePath) {
 
-            // 如果includeFilePath是以 '/'开头的，则认为是相对于base进行定位的
-            if (includeFilePath[0] === '/') {
-                includeFilePath = (defaults.base ? defaults.base : '') + includeFilePath;
-            }
+            if (path.isAbsolute(includeFilePath)) {
 
-            return {
-                content: fs.readFileSync(includeFilePath, 'utf-8'),
-                basePath: path.dirname(includeFilePath)
+                // 如果includeFilePath是以 '/'开头的，则认为是相对于base进行定位的
+                if (includeFilePath[0] === '/') {
+                    includeFilePath = (defaults.base ? defaults.base : '') + includeFilePath;
+                }
+
+                return {
+                    content: fs.readFileSync(includeFilePath, 'utf-8'),
+                    basePath: path.dirname(includeFilePath)
+                }
+            } else {
+                // 否则resolve一下，再返回
+                // todo
+                return {
+                    content: fs.readFileSync(path.resolve(basePath, includeFilePath), 'utf-8'),
+                    basePath: path.dirname(path.resolve(basePath, includeFilePath))
+                }
             }
-        } else {
-            // 否则resolve一下，再返回
-            // todo
-            return {
-                content: fs.readFileSync(path.resolve(basePath, includeFilePath), 'utf-8'),
-                basePath: path.dirname(path.resolve(basePath, includeFilePath))
-            }
-        }
+        };
     };
 
     var html = String(file.contents),
@@ -69,7 +72,7 @@ var preInclude = function(file, encoding, callback) {
             if(resultData) {
 
                 // include('hello.html', data) -> include('hello.html') -> evalFun
-                evalFun = $1.replace(getDataREGEXP, function($0, $1) { return $1 + ',"' + basePath + '")'});
+                evalFun = $1.replace(getDataREGEXP, function($0, $1) { return $1 + ')'});
 
                 // 将 include('hello.html', data), 的data -> dataParam
                 dataParam = resultData[2];
@@ -78,7 +81,8 @@ var preInclude = function(file, encoding, callback) {
             var headerCode = ' %> \n <% (function($$data) {%>\n';
 
             // hello.html -> contentCode
-            var contentCode = (new Function('include', 'return ' + evalFun ))(readFile);
+            var contentCode = (new Function('include', 'return ' + evalFun ))(readFile)(basePath);
+
 
             // 从hello.html当中获取其中的变量
             var variables = getVariables(contentCode.content);
@@ -89,13 +93,17 @@ var preInclude = function(file, encoding, callback) {
             // 递归获取
             contentCode = self(contentCode.content, contentCode.basePath);
 
+            // 如果contentCode中无就直接返回contentCode
+            if(!/<%[\s\S]*?%>/.test(contentCode)) {
+                return contentCode;
+            }
+
             var footerCode = ' \n <% })(' + dataParam + '); %> \n <% ';
             return headerCode + contentCode + footerCode;
         });
     };
 
-    // 去掉多余的 <% %> (中间除了空格没有其他的业务代码)
-    file.contents = new Buffer(include(html, basePath).replace(/<%\s*?%>/g, ''));
+    file.contents = new Buffer(include(html, basePath));
     this.push(file);
     callback();
 
@@ -220,3 +228,4 @@ exports = module.exports = through.obj(preInclude);
 exports.config = function(key, value) {
     defaults[key] = value;
 }
+
