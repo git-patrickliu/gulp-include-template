@@ -8,107 +8,132 @@ var defaults = {
     base: null
 };
 
-// 给artTemplate新增一个预处理include的方法
-// 并且做成一个gulp stream
-var preInclude = function(file, encoding, callback) {
+    // get `include('hello.html');` out from <% include('hello.html'); %>
+var GET_INCLUDE_STR_REGEXP = /(include[^\(]*?\([^\)]*?\);?)(?=[\s\S]*?%>)/g,
+    // parse data , include('hello.html', { data: data }) -> get `{ data: data }`;
+    GET_DATA_REGEPX= /.*?(include[^\(]*?\([^,]*?),([\s\S]*?)\)/;
 
-    // is null doesn't supported
-    if (file.isNull()) {
+var preInclude = function() {
 
-        // 传给下一个through对象
+    return through.obj(function(file, encoding, callback) {
+
+        // is null doesn't supported
+        if (file.isNull()) {
+
+            // 传给下一个through对象
+            this.push(file);
+            return callback();
+        }
+
+        // stream doesn't supported
+        if (file.isStream()) {
+
+            return callback(new Error('Streaming not supported'));
+        }
+
+        var html = String(file.contents),
+            basePath = path.dirname(file.path);
+
+        file.contents = new Buffer(readFile(html, basePath).replace(/<%\s*?%>/g, ''));
         this.push(file);
-        return callback();
-    }
-    // stream doesn't supported
-    if (file.isStream()) {
-        return callback(new Error('Streaming not supported'));
-    }
+        callback();
 
-    var readFile = function (includeFilePath) {
-
-        return function(basePath) {
-
-            if (path.isAbsolute(includeFilePath)) {
-
-                // 如果includeFilePath是以 '/'开头的，则认为是相对于base进行定位的
-                if (includeFilePath[0] === '/') {
-                    includeFilePath = (defaults.base ? defaults.base : '') + includeFilePath;
-                }
-
-                return {
-                    content: fs.readFileSync(includeFilePath, 'utf-8'),
-                    basePath: path.dirname(includeFilePath)
-                }
-            } else {
-                // 否则resolve一下，再返回
-                // todo
-                return {
-                    content: fs.readFileSync(path.resolve(basePath, includeFilePath), 'utf-8'),
-                    basePath: path.dirname(path.resolve(basePath, includeFilePath))
-                }
-            }
-        };
-    };
-
-    var html = String(file.contents),
-        basePath = path.dirname(file.path);
-
-    function include(html, basePath) {
-        var self = arguments.callee;
-
-        // 对html当中的文件include进行正则匹配
-        var REGEXP = /(include[^\(]*?\([^\)]*?\);?)(?=[\s\S]*?%>)/g;
-
-        return html.replace(REGEXP, function($1) {
-            // 如果匹配成功，即有include方法存在
-
-            // parse data , include('hello.html', data) -> get 'data';
-            var getDataREGEXP = /.*?(include[^\(]*?\([^,]*?),([\s\S]*?)\)/,
-                resultData = getDataREGEXP.exec($1),
-                evalFun = $1,
-                dataParam = '';
-
-            // 如果用户有传入 data, 即 include('hello.html', data)
-            if(resultData) {
-
-                // include('hello.html', data) -> include('hello.html') -> evalFun
-                evalFun = $1.replace(getDataREGEXP, function($0, $1) { return $1 + ')'});
-
-                // 将 include('hello.html', data), 的data -> dataParam
-                dataParam = resultData[2];
-            }
-
-            var headerCode = ' %> \n <% (function($$data) {%>\n';
-
-            // hello.html -> contentCode
-            var contentCode = (new Function('include', 'return ' + evalFun ))(readFile)(basePath);
-
-
-            // 从hello.html当中获取其中的变量
-            var variables = getVariables(contentCode.content);
-
-            // 将变量加到headerCode后面
-            headerCode += (variables.length > 0 ? (' <% var ' + variables.join(',') + '; %> \n') : '');
-
-            // 递归获取
-            contentCode = self(contentCode.content, contentCode.basePath);
-
-            // 如果contentCode中无就直接返回contentCode
-            if(!/<%[\s\S]*?%>/.test(contentCode)) {
-                return ' %> ' + contentCode + ' <% ';
-            }
-
-            var footerCode = ' \n <% })(' + dataParam + '); %> \n <% ';
-            return headerCode + contentCode + footerCode;
-        });
-    };
-
-    file.contents = new Buffer(include(html, basePath).replace(/<%\s*?%>/g, ''));
-    this.push(file);
-    callback();
-
+    });
 };
 
+function readFile(html, basePath) {
+
+    var self = arguments.callee;
+
+    return html.replace(GET_INCLUDE_STR_REGEXP, function($1) {
+
+        // 如果匹配成功，即有include方法存在
+        // $1 -> `include('hello.html', data) || `include('hello.html'); `;
+        var resultData = GET_DATA_REGEPX.exec($1),
+            evalFun = $1,
+            dataParam = '';
+
+        // 如果用户有传入 data, 即 include('hello.html', data)
+        if(resultData) {
+
+            // include('hello.html', data) -> include('hello.html') -> evalFun
+            evalFun = $1.replace(GET_DATA_REGEPX, function($0, $1) { return $1 + ')'});
+
+            // 将 include('hello.html', data), 的data -> dataParam
+            dataParam = resultData[2];
+        }
+
+        // 整个代码块分为 headerCode
+        //              contentCode
+        //              footerCode
+
+        var headerCode = ' %> \n <% (function($$data) {%>\n';
+
+        // evalFun = (functoin(include) {
+        //            return include('hello.html');
+        //         })(include);
+        evalFun = (new Function('include', 'return ' + evalFun ))(include);
+
+        // fs.readFileSync('hello.html', 'utf-8') -> contentCode
+        var contentCode = evalFun(basePath, defaults.base);
+
+        // artTemplate当中的方法，通过正则获取content里面的变量
+        var variables = getVariables(contentCode.content);
+
+        // 将变量加到headerCode后面
+        headerCode += (variables.length > 0 ? (' <% var ' + variables.join(',') + '; %> \n') : '');
+
+        // 当返回的content里面还有include的时候，进行递归
+        contentCode = self(contentCode.content, contentCode.basePath);
+
+        // 如果contentCode中无<% %>的内嵌逻辑代码就直接返回contentCode
+        if(!/<%[\s\S]*?%>/.test(contentCode)) {
+            return ' %> ' + contentCode + ' <% ';
+        }
+
+        // footerCode闭合整代码和headerCode相呼应
+        var footerCode = ' \n <% })(' + dataParam + '); %> \n <% ';
+
+        return headerCode + contentCode + footerCode;
+    });
+};
+
+// 此方法提供给<% include(); %>的 include 使用
+// var includedHtmlText =
+//         (function() {
+//             return include('hello.html');
+//         })(include)(basePath, base);
+function include(includeFilePath) {
+
+    return function(basePath, base) {
+
+        // <% include('/header.html') %>
+        // => include(defaults.base + '/header.html');
+        if (path.isAbsolute(includeFilePath)) {
+
+            // 如果includeFilePath是以 '/'开头的，则认为是相对于base进行定位的
+            if (includeFilePath[0] === '/') {
+                includeFilePath = (base ? base : '') + includeFilePath;
+            }
+
+        } else {
+
+            // 如果是相对地址，进入这个逻辑
+            // 通过basePath和includeFilePath来拼接成完全的地址
+            includeFilePath = path.resolve(basePath, includeFilePath);
+
+        }
+
+        return {
+            content: fs.readFileSync(includeFilePath, 'utf-8'),
+
+            // 同时返回basePath, 用于多层include的时候，保证引用的正确性
+            basePath: path.dirname(includeFilePath)
+        }
+    };
+};
+
+// 下面是artTemplate取过来的
 // from artTemplate, 用来获取模板中的变量
 // 静态分析模板变量
 var KEYWORDS =
@@ -222,10 +247,9 @@ function logic (code, uniq) {
     return headerCode;
 };
 
-exports = module.exports = through.obj(preInclude);
+exports = module.exports = preInclude;
 
 // set some configs
 exports.config = function(key, value) {
     defaults[key] = value;
 }
-
