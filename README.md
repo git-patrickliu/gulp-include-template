@@ -36,7 +36,7 @@ gulp.task("includeTemplate", function() {
 
     return gulp.src("../html/hello.html")
         // options is optional
-        .pipe(gulpIncludeTemplate)
+        .pipe(gulpIncludeTemplate())
         .pipe(gulp.dest("./compiled"));
 });
 ```
@@ -75,7 +75,7 @@ gulp.task("includeTemplate", function() {
 
     return gulp.src("../html/hello.html")
         // options is optional
-        .pipe(gulpIncludeTemplate)
+        .pipe(gulpIncludeTemplate())
         .pipe(gulp.dest("./compiled"));
 });
 ```
