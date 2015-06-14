@@ -1,3 +1,7 @@
+[![NPM version][npm-image]][npm-url] [![Downloads][downloads-image]][npm-url] [![Build Status](https://travis-ci.org/FroadUED/gulp-include-template.png?branch=master)](https://travis-ci.org/FroadUED/gulp-include-template) [![Dependency Status](https://david-dm.org/FroadUED/gulp-include-template.svg)](https://david-dm.org/FroadUED/gulp-include-template) [![Coverage Status](https://coveralls.io/repos/FroadUED/gulp-include-template/badge.svg?branch=master)](https://coveralls.io/r/FroadUED/gulp-include-template?branch=master)
+
+[![NPM](https://nodei.co/npm/gulp-include-template.png?downloads=true&stars=true)](https://nodei.co/npm/gulp-include-template/)
+
 # gulp-include-template
 This is a gulp plugin to extend artTemplate include function replacing &lt;% include() %> with compiled functions.
 
