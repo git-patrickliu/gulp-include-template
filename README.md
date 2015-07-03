@@ -1,4 +1,4 @@
-# gulp-include-template
+# gulp-include-template [![Build Status](https://travis-ci.org/FroadUED/gulp-include-template.svg?branch=master)](https://travis-ci.org/FroadUED/gulp-include-template/)
 
 [![NPM](https://nodei.co/npm/gulp-include-template.png?downloads=true&stars=true)](https://nodei.co/npm/gulp-include-template/)
 
