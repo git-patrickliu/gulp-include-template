@@ -3,6 +3,7 @@
 [![NPM](https://nodei.co/npm/gulp-include-template.png?downloads=true&stars=true)](https://nodei.co/npm/gulp-include-template/)
 
 This is a gulp plugin to extend artTemplate include function replacing &lt;% include() %> with compiled functions.
+In 0.1.0 version, we add `includeNative` to include native html but not compiled html. The syntax is the same with `include` but without passing a `data` object.
 
 ## Usage
 
@@ -95,4 +96,9 @@ Html is like this.
 ```
 
 The compiled hello.html can be directly used by the [artTemplate](https://github.com/aui/artTemplate) without loading the outer html in running time.
+
+
+## Release log
+
+1. 0.1.0 add `includeNative` to just include original content to template.
 
