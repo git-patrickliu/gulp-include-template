@@ -10,13 +10,31 @@ var includeTemplate = require('./index'),
 
 includeTemplate.config('base', path.dirname(__filename) + '/test');
 
-gulp.task('gen', function() {
-    return gulp.src('test/index.html')
+gulp.task('gen1', function() {
+    return gulp.src('test/onlyInclude.html')
         .pipe(includeTemplate())
         .pipe(gulp.dest('test/compiled'));
 });
 
-gulp.task('mocha', ['gen'], function() {
+gulp.task('gen2', function() {
+    return gulp.src('test/onlyIncludeNative.html')
+        .pipe(includeTemplate())
+        .pipe(gulp.dest('test/compiled'));
+});
+
+gulp.task('gen3', function() {
+    return gulp.src('test/includeAndIncludeNative.html')
+        .pipe(includeTemplate())
+        .pipe(gulp.dest('test/compiled'));
+});
+
+gulp.task('gen4', function() {
+    return gulp.src('test/mixed.html')
+        .pipe(includeTemplate())
+        .pipe(gulp.dest('test/compiled'));
+});
+
+gulp.task('mocha', ['gen1', 'gen2', 'gen3', 'gen4'], function() {
     return gulp.src('test/main.js')
                .pipe(mocha());
 });
