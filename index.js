@@ -125,7 +125,8 @@ var readIncludeNative = function(html, basePath) {
         evalFun = (new Function('includeNative', 'return ' + evalFun ))(include);
 
         // fs.readFileSync('hello.html', 'utf-8') -> contentCode
-        var contentCode = evalFun(basePath, defaults.base);
+        // replace <% => {{ and %> => }}
+        var contentCode = evalFun(basePath, defaults.base).replace(/<%/, '{{').replace(/%>/, '}}');
 
         // 当返回的content里面还有includeNative 的时候，进行递归
         return '%>' + self(contentCode.content, contentCode.basePath) + '<%';

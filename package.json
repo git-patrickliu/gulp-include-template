@@ -1,6 +1,6 @@
 {
   "name": "gulp-include-template",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "dependencies": {
     "art-template": "3.0.3",
     "ued-art-template": "^0.0.1",
