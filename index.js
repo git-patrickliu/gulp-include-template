@@ -9,9 +9,9 @@ var defaults = {
 };
 
     // get `include('hello.html');` out from <% include('hello.html'); %>
-var GET_INCLUDE_STR_REGEXP = /(include[^\(]*?\([^\)]*?\);?)(?=[\s\S]*?%>)/g,
+var GET_INCLUDE_STR_REGEXP = /(\binclude\b[^\(]*?\([^\)]*?\);?)(?=[\s\S]*?%>)/g,
     // parse data , include('hello.html', { data: data }) -> get `{ data: data }`;
-    GET_DATA_REGEPX= /.*?(include[^\(]*?\([^,]*?),([\s\S]*?)\)/;
+    GET_DATA_REGEPX= /.*?(\binclude\b[^\(]*?\([^,]*?),([\s\S]*?)\)/;
 
 var preInclude = function() {
 

@@ -11,5 +11,9 @@
     "name": "git-patrickliu",
     "email": "phil.liu.cn@gmail.com"
   },
-  "repository": {}
+  "repository": {},
+  "devDependencies": {
+    "gulp": "^3.9.0",
+    "gulp-mocha": "^2.1.2"
+  }
 }
