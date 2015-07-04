@@ -125,11 +125,10 @@ var readIncludeNative = function(html, basePath) {
         evalFun = (new Function('includeNative', 'return ' + evalFun ))(include);
 
         // fs.readFileSync('hello.html', 'utf-8') -> contentCode
-        // replace <% => {{ and %> => }}
-        var contentCode = evalFun(basePath, defaults.base).replace(/<%/, '{{').replace(/%>/, '}}');
+        var contentCode = evalFun(basePath, defaults.base);
 
-        // 当返回的content里面还有includeNative 的时候，进行递归
-        return '%>' + self(contentCode.content, contentCode.basePath) + '<%';
+        // 暂时includeNative不做递归替换
+        return '%>' + contentCode.content.replace(/<%/, '{%').replace(/%>/, '%}') + '<%';
     });
 };
 
