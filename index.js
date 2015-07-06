@@ -128,7 +128,7 @@ var readIncludeNative = function(html, basePath) {
         var contentCode = evalFun(basePath, defaults.base);
 
         // 暂时includeNative不做递归替换
-        return '%>' + contentCode.content.replace(/<%/, '{%').replace(/%>/, '%}') + '<%';
+        return '%>' + contentCode.content.replace(/<%/g, '{%').replace(/%>/g, '%}') + '<%';
     });
 };
 
