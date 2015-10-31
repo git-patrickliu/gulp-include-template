@@ -8,11 +8,11 @@ var defaults = {
     base: null
 };
 
-    // get `include('hello.html');` out from <% include('hello.html'); %>
-var GET_INCLUDE_STR_REGEXP = /(\binclude\b[^\(]*?\([^\)]*?\);?)(?=[\s\S]*?%>)/g,
-    // get `includeNative('hello.html');` out from <% includeNative('hello.html'); %>
-    GET_INCLUDE_NATIVE_STR_REGEXP = /(\bincludeNative\b[^\(]*?\([^\)]*?\);?)(?=[\s\S]*?%>)/g,
-    // parse data , include('hello.html', { data: data }) -> get `{ data: data }`;
+// get `include('hello.html');` out from <% include('hello.html'); %>
+var GET_INCLUDE_STR_REGEXP = /(<%\s*?)(\binclude\b[^\(]*?\([^\)]*?\);?)(?=[\s\S]*?%>)/g,
+// get `includeNative('hello.html');` out from <% includeNative('hello.html'); %>
+    GET_INCLUDE_NATIVE_STR_REGEXP = /(<%\s*?)(\bincludeNative\b[^\(]*?\([^\)]*?\);?)(?=[\s\S]*?%>)/g,
+// parse data , include('hello.html', { data: data }) -> get `{ data: data }`;
     GET_DATA_REGEPX= /.*?(\binclude\b[^\(]*?\([^,]*?),([\s\S]*?)\)/;
 
 var preInclude = function() {
@@ -57,19 +57,19 @@ var readInclude = function(html, basePath) {
 
     var self = arguments.callee;
 
-    return html.replace(GET_INCLUDE_STR_REGEXP, function($1) {
+    return html.replace(GET_INCLUDE_STR_REGEXP, function($0, $1, $2) {
 
         // 如果匹配成功，即有include方法存在
-        // $1 -> `include('hello.html', data) || `include('hello.html'); `;
-        var resultData = GET_DATA_REGEPX.exec($1),
-            evalFun = $1,
+        // $2 -> `include('hello.html', data) || `include('hello.html'); `;
+        var resultData = GET_DATA_REGEPX.exec($2),
+            evalFun = $2,
             dataParam = '';
 
         // 如果用户有传入 data, 即 include('hello.html', data)
         if(resultData) {
 
             // include('hello.html', data) -> include('hello.html') -> evalFun
-            evalFun = $1.replace(GET_DATA_REGEPX, function($0, $1) { return $1 + ')'});
+            evalFun = $2.replace(GET_DATA_REGEPX, function($0, $1) { return $1 + ')'});
 
             // 将 include('hello.html', data), 的data -> dataParam
             dataParam = resultData[2];
@@ -79,7 +79,7 @@ var readInclude = function(html, basePath) {
         //              contentCode
         //              footerCode
 
-        var headerCode = ' %> \n <% (function($$data) {%>\n';
+        var headerCode = $1 + ' %> \n <% (function($$data) {%>\n';
 
         // evalFun = (functoin(include) {
         //            return include('hello.html');
@@ -100,7 +100,7 @@ var readInclude = function(html, basePath) {
 
         // 如果contentCode中无<% %>的内嵌逻辑代码就直接返回contentCode
         if(!/<%[\s\S]*?%>/.test(contentCode)) {
-            return ' %> ' + contentCode + ' <% ';
+            return $1 + ' %> ' + contentCode + ' <% ';
         }
 
         // footerCode闭合整代码和headerCode相呼应
@@ -116,11 +116,11 @@ var readIncludeNative = function(html, basePath) {
 
     var self = arguments.callee;
 
-    return html.replace(GET_INCLUDE_NATIVE_STR_REGEXP, function($1) {
+    return html.replace(GET_INCLUDE_NATIVE_STR_REGEXP, function($0, $1, $2) {
 
         // 如果匹配成功，即有includeNative 方法存在
-        // $1 -> `include('hello.html', data) || `include('hello.html'); `;
-        var evalFun = $1;
+        // $2 -> `include('hello.html', data) || `include('hello.html'); `;
+        var evalFun = $2;
 
         evalFun = (new Function('includeNative', 'return ' + evalFun ))(include);
 
@@ -128,7 +128,8 @@ var readIncludeNative = function(html, basePath) {
         var contentCode = evalFun(basePath, defaults.base);
 
         // 暂时includeNative不做递归替换
-        return '%>' + contentCode.content.replace(/<%/g, '{%').replace(/%>/g, '%}') + '<%';
+        // set [% %] to open tag && close tag
+        return $1 + '%>' + contentCode.content.replace(/<%/g, '[%').replace(/%>/g, '%]') + '<%';
     });
 };
 
