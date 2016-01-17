@@ -185,8 +185,16 @@ var preInclude = function(options) {
 
             }
 
+            var content = '';
+
+            try {
+                content = fs.readFileSync(includeFilePath, 'utf-8');
+            } catch(e) {
+                console.error(e);
+            }
+
             return {
-                content: fs.readFileSync(includeFilePath, 'utf-8'),
+                content: content,
 
                 // 同时返回basePath, 用于多层include的时候，保证引用的正确性
                 basePath: path.dirname(includeFilePath)
