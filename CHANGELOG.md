@@ -7,3 +7,6 @@
 
 0.2.2
 1. 新增includeNativeDeep. 对文件进行递归引用进来
+
+0.2.3
+1. fix bug..0.2.2有错

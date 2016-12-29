@@ -20,16 +20,16 @@ var preInclude = function(options) {
     // get `include('hello.html');` out from <% include('hello.html'); %>
     ///(<%\s*?)(\binclude\b[^\(]*?\([^\)]*?\);?)(?=[\s\S]*?%>)/g,
     var GET_INCLUDE_STR_REGEXP = new RegExp('(' + options.openTag + '\\s*?)(\\binclude\\b[^\\(]*?\\([^\\)]*?\\);?)(?=[\\s\\S]*?' + options.closeTag + ')', 'g'),
-        // get `includeNative('hello.html');` out from <% includeNative('hello.html'); %>
-        // GET_INCLUDE_NATIVE_STR_REGEXP = /(<%\s*?)(\bincludeNative\b[^\(]*?\([^\)]*?\);?)(?=[\s\S]*?%>)/g,
+    // get `includeNative('hello.html');` out from <% includeNative('hello.html'); %>
+    // GET_INCLUDE_NATIVE_STR_REGEXP = /(<%\s*?)(\bincludeNative\b[^\(]*?\([^\)]*?\);?)(?=[\s\S]*?%>)/g,
         GET_INCLUDE_NATIVE_STR_REGEXP = new RegExp('(' + options.openTag + '\\s*?)(\\bincludeNative\\b[^\\(]*?\\([^\\)]*?\\);?)(?=[\\s\\S]*?' + options.closeTag + ')', 'g'),
-       
-        // GET_INCLUDE_NATIRE_PURE_STR_REGEXP
+
+    // GET_INCLUDE_NATIRE_PURE_STR_REGEXP
         GET_INCLUDE_NATIVE_DEEP_STR_REGEXP = new RegExp('(' + options.openTag + '\\s*?)(\\bincludeNativeDeep\\b[^\\(]*?\\([^\\)]*?\\);?)(?=[\\s\\S]*?' + options.closeTag + ')', 'g'),
 
         GET_INCLUDE_PURE_STR_REGEXP = new RegExp('(' + options.openTag + '\\s*?)(\\bincludePure\\b[^\\(]*?\\([^\\)]*?\\);?)(?=[\\s\\S]*?' + options.closeTag + ')', 'g'),
-        // parse data , include('hello.html', { data: data }) -> get `{ data: data }`;
-        // GET_DATA_REGEPX= /.*?(\binclude\b[^\(]*?\([^,]*?),([\s\S]*?)\)/;
+    // parse data , include('hello.html', { data: data }) -> get `{ data: data }`;
+    // GET_DATA_REGEPX= /.*?(\binclude\b[^\(]*?\([^,]*?),([\s\S]*?)\)/;
         GET_DATA_REGEPX= new RegExp('.*?(\\binclude\\b[^\\(]*?\\([^,]*?),([\\s\\S]*?)\\)', 'g');
 
     function readFile(html, basePath) {
@@ -39,7 +39,7 @@ var preInclude = function(options) {
         html = readIncludeNative(html, basePath);
         html = readIncludePure(html, basePath);
         html = readInclude(html, basePath);
-        
+
 
         return html;
     };
@@ -183,7 +183,7 @@ var preInclude = function(options) {
             // set [% %] to open tag && close tag
             // return $1 + '%>' + contentCode.content.replace(/<%/g, '[%').replace(/%>/g, '%]') + '<%';
             var retStr = $1 + options.closeTag,
-                retContent = contentCode.content;
+                retContent = contentCode;
 
             if(options.replaceOpenTag !== null) {
                 retContent = retContent.replace(new RegExp(options.openTag, 'g'), options.replaceOpenTag);
@@ -196,7 +196,7 @@ var preInclude = function(options) {
             return retStr + retContent + options.openTag;
         });
     };
-    
+
 // 此方法提供给<% include(); %>的 include 使用
 // 也能提供给<% includeNative(); %> 使用
 // var includedHtmlText =
@@ -250,13 +250,13 @@ var preInclude = function(options) {
         + ',finally,for,function,if,in,instanceof,new,null,return,switch,this'
         + ',throw,true,try,typeof,var,void,while,with'
 
-            // 保留字
+        // 保留字
         + ',abstract,boolean,byte,char,class,const,double,enum,export,extends'
         + ',final,float,goto,implements,import,int,interface,long,native'
         + ',package,private,protected,public,short,static,super,synchronized'
         + ',throws,transient,volatile'
 
-            // ECMA 5 - use strict
+        // ECMA 5 - use strict
         + ',arguments,let,yield'
 
         + ',undefined';
