@@ -4,3 +4,6 @@
 
 0.2.1
 1. add try catch to fs.readFileSync to prevent crash
+
+0.2.2
+1. 新增includeNativeDeep. 对文件进行递归引用进来

@@ -23,6 +23,9 @@ var preInclude = function(options) {
         // get `includeNative('hello.html');` out from <% includeNative('hello.html'); %>
         // GET_INCLUDE_NATIVE_STR_REGEXP = /(<%\s*?)(\bincludeNative\b[^\(]*?\([^\)]*?\);?)(?=[\s\S]*?%>)/g,
         GET_INCLUDE_NATIVE_STR_REGEXP = new RegExp('(' + options.openTag + '\\s*?)(\\bincludeNative\\b[^\\(]*?\\([^\\)]*?\\);?)(?=[\\s\\S]*?' + options.closeTag + ')', 'g'),
+       
+        // GET_INCLUDE_NATIRE_PURE_STR_REGEXP
+        GET_INCLUDE_NATIVE_DEEP_STR_REGEXP = new RegExp('(' + options.openTag + '\\s*?)(\\bincludeNativeDeep\\b[^\\(]*?\\([^\\)]*?\\);?)(?=[\\s\\S]*?' + options.closeTag + ')', 'g'),
 
         GET_INCLUDE_PURE_STR_REGEXP = new RegExp('(' + options.openTag + '\\s*?)(\\bincludePure\\b[^\\(]*?\\([^\\)]*?\\);?)(?=[\\s\\S]*?' + options.closeTag + ')', 'g'),
         // parse data , include('hello.html', { data: data }) -> get `{ data: data }`;
@@ -32,9 +35,11 @@ var preInclude = function(options) {
     function readFile(html, basePath) {
 
         // process include('a.html'), and replace `include('a.html')` with processed a.html
+        html = readIncludeNativeDeep(html, basePath);
         html = readIncludeNative(html, basePath);
         html = readIncludePure(html, basePath);
         html = readInclude(html, basePath);
+        
 
         return html;
     };
@@ -158,6 +163,40 @@ var preInclude = function(options) {
         });
     };
 
+// process include('a.html');
+    var readIncludeNativeDeep = function(html, basePath) {
+
+
+        return html.replace(GET_INCLUDE_NATIVE_DEEP_STR_REGEXP, function($0, $1, $2) {
+
+            // 如果匹配成功，即有includeNative 方法存在
+            // $2 -> `include('hello.html', data) || `include('hello.html'); `;
+            var evalFun = $2;
+
+            evalFun = (new Function('includeNativeDeep', 'return ' + evalFun ))(include);
+
+            // fs.readFileSync('hello.html', 'utf-8') -> contentCode
+            var contentCode = evalFun(basePath, options.base);
+            contentCode = readInclude(contentCode.content, contentCode.basePath);
+
+            // 暂时includeNative不做递归替换
+            // set [% %] to open tag && close tag
+            // return $1 + '%>' + contentCode.content.replace(/<%/g, '[%').replace(/%>/g, '%]') + '<%';
+            var retStr = $1 + options.closeTag,
+                retContent = contentCode.content;
+
+            if(options.replaceOpenTag !== null) {
+                retContent = retContent.replace(new RegExp(options.openTag, 'g'), options.replaceOpenTag);
+            }
+
+            if(options.replaceCloseTag !== null) {
+                retContent = retContent.replace(new RegExp(options.closeTag, 'g'), options.replaceCloseTag);
+            }
+
+            return retStr + retContent + options.openTag;
+        });
+    };
+    
 // 此方法提供给<% include(); %>的 include 使用
 // 也能提供给<% includeNative(); %> 使用
 // var includedHtmlText =
